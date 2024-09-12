@@ -33,8 +33,10 @@ namespace numpy_random_internel
         double legacy_beta(aug_bitgen *aug_state, double a, double b);
         int64_t legacy_random_binomial(bitgen *bitgen_state, double p, int64_t n, s_binomial_t *binomial);
         double legacy_gauss(aug_bitgen *aug_state);
+        double legacy_normal(aug_bitgen *aug_state, double loc, double scale);
+        double legacy_lognormal(aug_bitgen *aug_state, double mean, double sigma);
     }
-} // namespace numpy_random_internel
+} // namespace numpy_random_internel, what we want to expose from distributions.c
 
 template <class SrcIter, class DestIter>
 SrcIter uneven_copy(SrcIter src_first, DestIter dest_first, DestIter dest_last, std::true_type)
@@ -399,6 +401,30 @@ public:
         }
         std::lock_guard lock{mutex};
         return (T)numpy_random_internel::legacy_gauss(_internal_state._aug_state);
+    }
+
+    template <typename T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
+    T legacy_normal(T loc, T scale)
+    {
+        if (_internal_state._bitgen == nullptr || _internal_state._aug_state == nullptr)
+        {
+            return (T)0;
+        }
+        std::lock_guard lock{mutex};
+        return (T)numpy_random_internel::legacy_normal(_internal_state._aug_state, (double)loc,
+                                                       (double)scale);
+    }
+
+    template <typename T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
+    T legacy_lognormal(T mean, T sigma)
+    {
+        if (_internal_state._bitgen == nullptr || _internal_state._aug_state == nullptr)
+        {
+            return (T)0;
+        }
+        std::lock_guard lock{mutex};
+        return (T)numpy_random_internel::legacy_lognormal(_internal_state._aug_state, (double)mean,
+                                                          (double)sigma);
     }
 
     static double next_double(void *ptr)
