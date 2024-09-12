@@ -4,6 +4,8 @@
 #include <mutex>
 #include <utility>
 #include <vector>
+#include <type_traits>
+#include <iterator>
 
 struct bitgen;
 struct aug_bitgen;
@@ -331,7 +333,7 @@ public:
             return (T)0;
         }
         std::lock_guard lock{mutex};
-        return (T)legacy_beta(_internal_state._aug_state, (double)a, (double)b);
+        return (T)numpy_random_internel::legacy_beta(_internal_state._aug_state, (double)a, (double)b);
     }
 
     template <typename T, typename U,
@@ -343,8 +345,8 @@ public:
             return 0LL;
         }
         std::lock_guard lock{mutex};
-        return legacy_random_binomial(_internal_state._bitgen, (double)p, (int64_t)n,
-                                      _internal_state._binomial);
+        return numpy_random_internel::legacy_random_binomial(_internal_state._bitgen, (double)p, (int64_t)n,
+                                                             _internal_state._binomial);
     }
 
     template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, bool> = true>
@@ -360,7 +362,7 @@ public:
         double _low = (double)low;
         double _high = (double)high;
         double range = _high - _low;
-        if (!isfinite(range) || _internal_state._bitgen == nullptr)
+        if (!std::isfinite(range) || _internal_state._bitgen == nullptr)
         {
             return (T)0;
         }
@@ -395,6 +397,41 @@ public:
         }
         std::lock_guard lock{mutex};
         return (T)numpy_random_internel::legacy_gauss(_internal_state._aug_state);
+    }
+
+    static double next_double(void *ptr)
+    {
+        if constexpr (is_arithmetic)
+        {
+            auto &_this = *(RandomState<RngEngine> *)ptr;
+            auto &_engine = _this._engine;
+
+            if constexpr (sizeof(RngReturn) <= sizeof(uint32_t))
+            {
+                int32_t a = _engine() >> 5, b = _engine() >> 6;
+                return (a * 67108864.0 + b) / 9007199254740992.0;
+            }
+            else
+            {
+                uint64_t rnd = (uint64_t)_engine();
+                return (double)((rnd >> 11) * (1.0 / 9007199254740992.0));
+            }
+        }
+        else
+        {
+            uint64_t rnd = get_raw(ptr);
+            return ((double)(rnd >> 11) * (1.0 / 9007199254740992.0));
+        }
+    }
+
+    static uint64_t next_uint64(void *ptr)
+    {
+        return get<uint64_t>(ptr);
+    }
+
+    static uint32_t next_uint32(void *ptr)
+    {
+        return get<uint32_t>(ptr);
     }
 
 private:
@@ -597,41 +634,6 @@ private:
         }
     }
 
-    static uint64_t next_uint64(void *ptr)
-    {
-        return get<uint64_t>(ptr);
-    }
-
-    static uint32_t next_uint32(void *ptr)
-    {
-        return get<uint32_t>(ptr);
-    }
-
-    static double next_double(void *ptr)
-    {
-        if constexpr (is_arithmetic)
-        {
-            auto &_this = *(RandomState<RngEngine> *)ptr;
-            auto &_engine = _this._engine;
-
-            if constexpr (sizeof(RngReturn) <= sizeof(uint32_t))
-            {
-                int32_t a = _engine() >> 5, b = _engine() >> 6;
-                return (a * 67108864.0 + b) / 9007199254740992.0;
-            }
-            else
-            {
-                uint64_t rnd = (uint64_t)_engine();
-                return (double)((rnd >> 11) * (1.0 / 9007199254740992.0));
-            }
-        }
-        else
-        {
-            uint64_t rnd = get_raw(ptr);
-            return ((double)(rnd >> 11) * (1.0 / 9007199254740992.0));
-        }
-    }
-
     static uint64_t next_raw(void *ptr)
     {
         return get_raw(ptr);
@@ -717,7 +719,7 @@ public:
         _inner.mix_entropy();
     }
 
-    NumpySeedSequence(const std::vector<uint32_t> &entropy)
+    NumpySeedSequence(std::vector<uint32_t> &entropy) // better to giver a rvalue ?
     {
         _inner.set_entropy(std::move(entropy));
         _inner.mix_entropy();
@@ -774,7 +776,6 @@ public:
         return generate();
     }
 
-private:
     result_type generate()
     {
         if constexpr (sizeof(result_type) <= sizeof(uint32_t))
@@ -785,7 +786,7 @@ private:
         {
             uint32_t state1 = _inner.generate();
             uint32_t state2 = _inner.generate();
-            return (result_type)(state1 | (uint64_t)state2 << 32); // that was change from the original code, because original code didn't give same results as numpy
+            return (result_type)(state1 | (uint64_t)state2 << 32); // that was change from the original code
         }
     }
 
