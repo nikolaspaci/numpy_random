@@ -11,3 +11,5 @@ CTestTestfile.cmake
 _deps
 /out
 /.vs
+#ignore generate lib static
+lib
