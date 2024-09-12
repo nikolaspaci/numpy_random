@@ -8,7 +8,7 @@
 #include <iterator>
 #include <climits>
 #include <cmath>
-
+#include <algorithm>
 struct bitgen;
 struct aug_bitgen;
 struct s_binomial_t;
