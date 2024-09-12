@@ -6,6 +6,8 @@
 #include <vector>
 #include <type_traits>
 #include <iterator>
+#include <climits>
+#include <cmath>
 
 struct bitgen;
 struct aug_bitgen;
