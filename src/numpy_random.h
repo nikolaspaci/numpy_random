@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <cstdint>
 #include <deque>
-#include <mutex>
 #include <utility>
 #include <vector>
 #include <type_traits>
@@ -35,6 +34,12 @@ namespace numpy_random_internel
         double legacy_gauss(aug_bitgen *aug_state);
         double legacy_normal(aug_bitgen *aug_state, double loc, double scale);
         double legacy_lognormal(aug_bitgen *aug_state, double mean, double sigma);
+        double random_normal(bitgen *bitgen_state, double loc, double scale);
+        int64_t random_binomial(bitgen *bitgen_state, double p,
+                                int64_t n, s_binomial_t *binomial);
+        double random_lognormal(bitgen *bitgen_state, double mean, double sigma);
+        int64_t random_poisson(bitgen *bitgen_state, double lam);
+        double random_beta(bitgen *bitgen_state, double a, double b);
     }
 } // namespace numpy_random_internel, what we want to expose from distributions.c
 
@@ -316,7 +321,6 @@ public:
 
     ~RandomState()
     {
-        std::lock_guard lock{mutex};
         _internal_state.uninit();
     }
 
@@ -325,43 +329,62 @@ public:
     this lock simply does nothing. */
     RngEngine &get_engine()
     {
-        std::lock_guard lock{mutex};
         return _engine;
     }
 
     template <typename T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
-    T beta(T a, T b)
+    T legacy_Beta(T a, T b)
     {
         if (_internal_state._bitgen == nullptr || _internal_state._aug_state == nullptr)
         {
             return (T)0;
         }
-        std::lock_guard lock{mutex};
         return (T)numpy_random_internel::legacy_beta(_internal_state._aug_state, (double)a, (double)b);
+    }
+
+    template <typename T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
+    T beta(T a, T b)
+    {
+        if (_internal_state._bitgen == nullptr)
+        {
+            return (T)0;
+        }
+        return (T)numpy_random_internel::random_beta(_internal_state._bitgen, (double)a, (double)b);
+    }
+
+    template <typename T, typename U,
+              std::enable_if_t<std::is_arithmetic_v<T> && std::is_floating_point_v<U>, bool> = true>
+    int64_t legacy_Binomial(T n, U p)
+    {
+        if (_internal_state._bitgen == nullptr || _internal_state._binomial == nullptr)
+        {
+            return 0LL;
+        }
+        return numpy_random_internel::legacy_random_binomial(_internal_state._bitgen, (double)p, (int64_t)n,
+                                                             _internal_state._binomial);
     }
 
     template <typename T, typename U,
               std::enable_if_t<std::is_arithmetic_v<T> && std::is_floating_point_v<U>, bool> = true>
     int64_t binomial(T n, U p)
     {
-        if (_internal_state._bitgen == nullptr || _internal_state._binomial == nullptr)
+        if (_internal_state._bitgen == nullptr)
         {
             return 0LL;
         }
-        std::lock_guard lock{mutex};
-        return numpy_random_internel::legacy_random_binomial(_internal_state._bitgen, (double)p, (int64_t)n,
-                                                             _internal_state._binomial);
+        return numpy_random_internel::random_binomial(_internal_state._bitgen, (double)p, (int64_t)n,
+                                                      _internal_state._binomial);
     }
 
     template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, bool> = true>
-    T uniform(T high)
+    inline T uniform(T high)
     {
         T low = (T)0;
         return (T)uniform(low, high);
     }
 
     template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, bool> = true>
-    T uniform(T low, T high)
+    inline double uniform(T low, T high)
     {
         double _low = (double)low;
         double _high = (double)high;
@@ -370,64 +393,91 @@ public:
         {
             return (T)0;
         }
-        std::lock_guard lock{mutex};
-        return (T)numpy_random_internel::random_uniform(_internal_state._bitgen, _low, range);
+        return numpy_random_internel::random_uniform(_internal_state._bitgen, _low, range);
     }
 
     template <typename T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
-    T rand_int(T high)
+    inline T rand_int(T high)
     {
         T low = (T)0;
         return (T)rand_int(low, high);
     }
 
     template <typename T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
-    T rand_int(T low, T high)
+    inline T rand_int(T low, T high)
     {
         if (_internal_state._bitgen == nullptr)
         {
             return (T)0;
         }
-        std::lock_guard lock{mutex};
         return (T)random_bounded_fill(low, high - low, 1, true);
     }
 
     template <typename T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
-    T rand_n()
+    T legacy_Rand_n()
     {
-        if (_internal_state._bitgen == nullptr || _internal_state._aug_state == nullptr)
-        {
-            return (T)0;
-        }
-        std::lock_guard lock{mutex};
+        // if (_internal_state._bitgen == nullptr || _internal_state._aug_state == nullptr)
+        // {
+        //     return (T)0;
+        // }
         return (T)numpy_random_internel::legacy_gauss(_internal_state._aug_state);
     }
 
     template <typename T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
-    T legacy_normal(T loc, T scale)
+    inline double legacy_normal(T loc, T scale)
     {
-        if (_internal_state._bitgen == nullptr || _internal_state._aug_state == nullptr)
-        {
-            return (T)0;
-        }
-        std::lock_guard lock{mutex};
-        return (T)numpy_random_internel::legacy_normal(_internal_state._aug_state, (double)loc,
-                                                       (double)scale);
+        // if (_internal_state._bitgen == nullptr || _internal_state._aug_state == nullptr)
+        // {
+        //     return (T)0;
+        // }
+        return numpy_random_internel::legacy_normal(_internal_state._aug_state, (double)loc,
+                                                    (double)scale);
+    }
+
+    template <typename T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
+    inline double normal(T loc, T scale)
+    {
+        // if (_internal_state._bitgen == nullptr)
+        // {
+        //     return (T)0;
+        // }
+        return numpy_random_internel::random_normal(_internal_state._bitgen, (double)loc,
+                                                    (double)scale);
     }
 
     template <typename T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
     T legacy_lognormal(T mean, T sigma)
     {
-        if (_internal_state._bitgen == nullptr || _internal_state._aug_state == nullptr)
-        {
-            return (T)0;
-        }
-        std::lock_guard lock{mutex};
+        // if (_internal_state._bitgen == nullptr || _internal_state._aug_state == nullptr)
+        // {
+        //     return (T)0;
+        // }
         return (T)numpy_random_internel::legacy_lognormal(_internal_state._aug_state, (double)mean,
                                                           (double)sigma);
     }
 
-    static double next_double(void *ptr)
+    template <typename T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
+    T lognormal(T mean, T sigma)
+    {
+        if (_internal_state._bitgen == nullptr)
+        {
+            return (T)0;
+        }
+        return (T)numpy_random_internel::random_lognormal(_internal_state._bitgen, (double)mean,
+                                                          (double)sigma);
+    }
+
+    // poisson
+    int64_t poisson(double lam)
+    {
+        if (_internal_state._bitgen == nullptr)
+        {
+            return 0;
+        }
+        return numpy_random_internel::random_poisson(_internal_state._bitgen, lam);
+    }
+
+    inline static double next_double(void *ptr)
     {
         if constexpr (is_arithmetic)
         {
@@ -452,12 +502,12 @@ public:
         }
     }
 
-    static uint64_t next_uint64(void *ptr)
+    inline static uint64_t next_uint64(void *ptr)
     {
         return get<uint64_t>(ptr);
     }
 
-    static uint32_t next_uint32(void *ptr)
+    inline static uint32_t next_uint32(void *ptr)
     {
         return get<uint32_t>(ptr);
     }
@@ -670,7 +720,6 @@ private:
 private:
     void init()
     {
-        std::lock_guard lock{mutex};
         _internal_state.init(
             this, &RandomState<RngEngine>::next_uint64, &RandomState<RngEngine>::next_uint32,
             &RandomState<RngEngine>::next_double, &RandomState<RngEngine>::next_raw);
@@ -686,8 +735,6 @@ private:
 
     size_t _uintegers_cnt = 0;
     std::deque<uint64_t> _uintegers{};
-
-    mutable std::mutex mutex{};
 };
 
 struct internal_numpy_seed_sequence

@@ -17,12 +17,20 @@ else()
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR MINGW)
         add_definitions(-D_FILE_OFFSET_BITS=64)
     endif()
+      # Add -O3 optimization flag for non-MSVC compilers
+      add_compile_options(-O3)
+        # Add -march=native and -mavx flags for non-MSVC compilers
+      add_compile_options(-march=native -mavx)
 endif()
 
 add_subdirectory(numpy)
 add_library(numpy_random STATIC
     "numpy_random.cpp" 
     "numpy_random.h"
+    "pcg64/pcg64.c"
+    "pcg64/pcg64.h"
+    "pcg64/pcg64.orig.h"
+    "pcg64/pcg64.orig.c"
 )
 
 # Combine both static libraries

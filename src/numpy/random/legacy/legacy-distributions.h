@@ -23,13 +23,13 @@ extern double legacy_noncentral_chisquare(aug_bitgen_t *aug_state, double df,
 extern double legacy_noncentral_f(aug_bitgen_t *aug_state, double dfnum,
                                   double dfden, double nonc);
 extern double legacy_wald(aug_bitgen_t *aug_state, double mean, double scale);
-extern double legacy_lognormal(aug_bitgen_t *aug_state, double mean,
-                               double sigma);
+extern inline double legacy_lognormal(aug_bitgen_t *aug_state, double mean,
+                                      double sigma);
 extern double legacy_standard_t(aug_bitgen_t *aug_state, double df);
 extern double legacy_standard_cauchy(aug_bitgen_t *state);
 extern double legacy_beta(aug_bitgen_t *aug_state, double a, double b);
 extern double legacy_f(aug_bitgen_t *aug_state, double dfnum, double dfden);
-extern double legacy_normal(aug_bitgen_t *aug_state, double loc, double scale);
+extern inline double legacy_normal(aug_bitgen_t *aug_state, double loc, double scale);
 extern double legacy_standard_gamma(aug_bitgen_t *aug_state, double shape);
 extern double legacy_exponential(aug_bitgen_t *aug_state, double scale);
 extern double legacy_vonmises(bitgen_t *bitgen_state, double mu, double kappa);
@@ -47,6 +47,6 @@ extern int64_t legacy_random_geometric(bitgen_t *bitgen_state, double p);
 void legacy_random_multinomial(bitgen_t *bitgen_state, RAND_INT_TYPE n,
                                RAND_INT_TYPE *mnix, double *pix, npy_intp d,
                                binomial_t *binomial);
-extern double legacy_normal(aug_bitgen_t *aug_state, double loc, double scale);
+extern inline double legacy_normal(aug_bitgen_t *aug_state, double loc, double scale);
 
 #endif

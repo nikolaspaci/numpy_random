@@ -27,9 +27,10 @@ if (MSVC)
 else()
     target_compile_options(numpy PRIVATE
         -Wno-conversion
-
+        -O3
+        -march=native 
+        -mavx
         -Wno-sign-conversion
-
         $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
     )
 endif()
