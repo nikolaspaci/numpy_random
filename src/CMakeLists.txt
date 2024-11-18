@@ -16,11 +16,15 @@ else()
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR MINGW)
         add_definitions(-D_FILE_OFFSET_BITS=64)
+        set(CMAKE_C_COMPILER "/usr/lib/llvm-19/bin/clang")
+        set(CMAKE_CXX_COMPILER "/usr/lib/llvm-19/bin/clang++")
     endif()
       # Add -O3 optimization flag for non-MSVC compilers
       add_compile_options(-O3)
         # Add -march=native and -mavx flags for non-MSVC compilers
       add_compile_options(-march=native -mavx)
+      # Add -fPIC flag for position-independent code
+      add_compile_options(-fPIC)
 endif()
 
 add_subdirectory(numpy)
@@ -34,7 +38,7 @@ add_library(numpy_random STATIC
 )
 
 # Combine both static libraries
-add_library(libnumpyrandom STATIC $<TARGET_OBJECTS:numpy> $<TARGET_OBJECTS:numpy_random>)
-target_link_libraries(libnumpyrandom PUBLIC numpy numpy_random)
+add_library(numpyrandom SHARED $<TARGET_OBJECTS:numpy> $<TARGET_OBJECTS:numpy_random>)
+target_link_libraries(numpyrandom PUBLIC numpy numpy_random)
 
 create_target_directory_groups(numpy_random)
