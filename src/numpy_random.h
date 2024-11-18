@@ -26,9 +26,10 @@ namespace numpy_random_internel
                                        bool use_masked, uint8_t *out);
         void random_bounded_bool_fill(bitgen *bitgen_state, unsigned char off, unsigned char rng,
                                       intptr_t cnt, bool use_masked, unsigned char *out);
-
+        void random_standard_normal_fill(bitgen *bitgen_state, intptr_t cnt, double *out);
+        void random_standard_normal_fill_f(bitgen *bitgen_state, intptr_t cnt, float *out);
+        void random_standard_uniform_fill(bitgen *bitgen_state, intptr_t cnt, double *out);
         double random_uniform(bitgen *bitgen_state, double lower, double range);
-
         double legacy_beta(aug_bitgen *aug_state, double a, double b);
         int64_t legacy_random_binomial(bitgen *bitgen_state, double p, int64_t n, s_binomial_t *binomial);
         double legacy_gauss(aug_bitgen *aug_state);
@@ -332,6 +333,16 @@ public:
         return _engine;
     }
 
+    void random_standard_normal_fill(bitgen *bitgen_state, intptr_t cnt, double *out)
+    {
+        numpy_random_internel::random_standard_normal_fill(bitgen_state, cnt, out);
+    }
+
+    void random_standard_uniform_fill(bitgen *bitgen_state, intptr_t cnt, double *out)
+    {
+        numpy_random_internel::random_standard_uniform_fill(bitgen_state, cnt, out);
+    }
+
     template <typename T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
     T legacy_Beta(T a, T b)
     {
@@ -383,17 +394,12 @@ public:
         return (T)uniform(low, high);
     }
 
-    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, bool> = true>
-    inline double uniform(T low, T high)
+    inline double uniform(double low, double high)
     {
-        double _low = (double)low;
-        double _high = (double)high;
-        double range = _high - _low;
-        if (!std::isfinite(range) || _internal_state._bitgen == nullptr)
-        {
-            return (T)0;
-        }
-        return numpy_random_internel::random_uniform(_internal_state._bitgen, _low, range);
+        // double _low = (double)low;
+        // double _high = (double)high;
+        double range = high - low;
+        return low + range * next_double(this);
     }
 
     template <typename T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
