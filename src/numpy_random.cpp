@@ -1,6 +1,6 @@
 ﻿#include <cassert>
 #include <iostream>
-#include "numpy_random.h"
+#include "numpyRandom/numpy_random.h"
 
 extern "C"
 {

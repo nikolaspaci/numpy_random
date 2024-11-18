@@ -45,7 +45,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "pcg64.h"
+#include "pcg64/pcg64.h"
 
 extern inline void pcg_setseq_128_step_r(pcg_state_setseq_128 *rng);
 extern inline uint64_t pcg_output_xsl_rr_128_64(pcg128_t state);

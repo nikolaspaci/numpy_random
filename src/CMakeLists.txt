@@ -1,4 +1,5 @@
 include_directories(.)
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 set_property(DIRECTORY APPEND PROPERTY
     COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_DEBUG> $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
@@ -16,8 +17,6 @@ else()
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR MINGW)
         add_definitions(-D_FILE_OFFSET_BITS=64)
-        set(CMAKE_C_COMPILER "/usr/lib/llvm-19/bin/clang")
-        set(CMAKE_CXX_COMPILER "/usr/lib/llvm-19/bin/clang++")
     endif()
       # Add -O3 optimization flag for non-MSVC compilers
       add_compile_options(-O3)
@@ -30,9 +29,9 @@ endif()
 add_subdirectory(numpy)
 add_library(numpy_random STATIC
     "numpy_random.cpp" 
-    "numpy_random.h"
+    "${CMAKE_SOURCE_DIR}/include/numpyRandom/numpy_random.h"
     "pcg64/pcg64.c"
-    "pcg64/pcg64.h"
+    "${CMAKE_SOURCE_DIR}/include/pcg64/pcg64.h"
     "pcg64/pcg64.orig.h"
     "pcg64/pcg64.orig.c"
 )
