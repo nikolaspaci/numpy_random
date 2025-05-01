@@ -12,7 +12,7 @@ if (MSVC)
         )
     endif()
 else()
-    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 20)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     # Add -O3 optimization flag for non-MSVC compilers and mavx2
     add_compile_options(-O3 -march=native -mavx2)
