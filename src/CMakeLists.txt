@@ -27,14 +27,15 @@ else()
 endif()
 
 add_subdirectory(numpy)
+
 add_library(numpy_random STATIC
-    "numpy_random.cpp" 
-    "${CMAKE_SOURCE_DIR}/include/numpyRandom/numpy_random.h"
+    "numpy_random.cpp"
     "pcg64/pcg64.c"
-    "${CMAKE_SOURCE_DIR}/include/pcg64/pcg64.h"
-    "pcg64/pcg64.orig.h"
     "pcg64/pcg64.orig.c"
+    "mt19937/mt19937.c"
+    "mt19937/mt19937-jump.c"
 )
+
 
 # Combine both static libraries
 add_library(numpyrandom SHARED $<TARGET_OBJECTS:numpy> $<TARGET_OBJECTS:numpy_random>)
