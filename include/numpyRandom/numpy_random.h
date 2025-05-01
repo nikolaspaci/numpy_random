@@ -333,6 +333,17 @@ public:
         return _engine;
     }
 
+    const RngEngine &get_engine() const
+    {
+        return _engine;
+    }
+
+    // set_engine
+    void set_engine(RngEngine &&engine)
+    {
+        _engine = std::move(engine);
+    }
+
     void random_standard_normal_fill(bitgen *bitgen_state, intptr_t cnt, double *out)
     {
         numpy_random_internel::random_standard_normal_fill(bitgen_state, cnt, out);
