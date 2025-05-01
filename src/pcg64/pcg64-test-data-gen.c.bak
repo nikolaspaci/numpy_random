@@ -11,7 +11,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#define N 1000
+#define NUMBER_OF_RANDOM_RAW_GENERATED 1000
 
 int main() {
   pcg64_random_t rng;
@@ -19,7 +19,7 @@ int main() {
   state = seed;
   __uint128_t temp, s, inc;
   int i;
-  uint64_t store[N];
+  uint64_t store[NUMBER_OF_RANDOM_RAW_GENERATED];
   s = (__uint128_t)seed;
   inc = (__uint128_t)0;
   pcg64_srandom_r(&rng, s, inc);
@@ -27,7 +27,7 @@ int main() {
   printf("%" PRIx64 "\n", (uint64_t)rng.state);
   printf("0x%" PRIx64, (uint64_t)(rng.inc >> 64));
   printf("%" PRIx64 "\n", (uint64_t)rng.inc);
-  for (i = 0; i < N; i++) {
+  for (i = 0; i < NUMBER_OF_RANDOM_RAW_GENERATED; i++) {
     store[i] = pcg64_random_r(&rng);
   }
 
@@ -38,7 +38,7 @@ int main() {
     return -1;
   }
   fprintf(fp, "seed, 0x%" PRIx64 "\n", seed);
-  for (i = 0; i < N; i++) {
+  for (i = 0; i < NUMBER_OF_RANDOM_RAW_GENERATED; i++) {
     fprintf(fp, "%d, 0x%" PRIx64 "\n", i, store[i]);
     if (i == 999) {
       printf("%d, 0x%" PRIx64 "\n", i, store[i]);
@@ -54,7 +54,7 @@ int main() {
   printf("%" PRIx64 "\n", (uint64_t)rng.state);
   printf("0x%" PRIx64, (uint64_t)(rng.inc >> 64));
   printf("%" PRIx64 "\n", (uint64_t)rng.inc);
-  for (i = 0; i < N; i++) {
+  for (i = 0; i < NUMBER_OF_RANDOM_RAW_GENERATED; i++) {
     store[i] = pcg64_random_r(&rng);
   }
   fp = fopen("pcg64-testset-2.csv", "w");
@@ -63,7 +63,7 @@ int main() {
     return -1;
   }
   fprintf(fp, "seed, 0x%" PRIx64 "\n", seed);
-  for (i = 0; i < N; i++) {
+  for (i = 0; i < NUMBER_OF_RANDOM_RAW_GENERATED; i++) {
     fprintf(fp, "%d, 0x%" PRIx64 "\n", i, store[i]);
     if (i == 999) {
       printf("%d, 0x%" PRIx64 "\n", i, store[i]);

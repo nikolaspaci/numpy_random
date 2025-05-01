@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#define N 1000000000
+#define NUMBER_OF_RANDOM_RAW_GENERATED 1000000000
 
 int main() {
   pcg64_random_t rng;
@@ -30,7 +30,7 @@ int main() {
   rng.inc.low = 1;
 #endif
   clock_t begin = clock();
-  for (i = 0; i < N; i++) {
+  for (i = 0; i < NUMBER_OF_RANDOM_RAW_GENERATED; i++) {
     sum += pcg64_random_r(&rng);
     count++;
   }
@@ -38,5 +38,5 @@ int main() {
   double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
   printf("0x%" PRIx64 "\ncount: %" PRIu64 "\n", sum, count);
   printf("%" PRIu64 " randoms per second\n",
-         (uint64_t)(N / time_spent) / 1000000 * 1000000);
+         (uint64_t)(NUMBER_OF_RANDOM_RAW_GENERATED / time_spent) / 1000000 * 1000000);
 }

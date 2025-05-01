@@ -8,8 +8,8 @@
 
 #define RK_STATE_LEN 624
 
-#define N 624
-#define M 397
+#define NUMBER_OF_RANDOM_RAW_GENERATED 624
+#define MT19937_RECURRENCE_OFFSET 397
 #define MATRIX_A 0x9908b0dfUL
 #define UPPER_MASK 0x80000000UL
 #define LOWER_MASK 0x7fffffffUL

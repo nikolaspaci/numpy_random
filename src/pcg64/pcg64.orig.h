@@ -167,7 +167,7 @@ extern "C"
   }
 #endif
 
-  // RXS M XS
+  // RXS MT19937_RECURRENCE_OFFSET XS
 
   inline uint8_t pcg_output_rxs_m_xs_8_8(uint8_t state)
   {
@@ -1516,7 +1516,7 @@ extern "C"
   }
 #endif
 
-  /* Generation functions for RXS M XS (no MCG versions because they
+  /* Generation functions for RXS MT19937_RECURRENCE_OFFSET XS (no MCG versions because they
    * don't make sense when you want to use the entire state)
    */
 

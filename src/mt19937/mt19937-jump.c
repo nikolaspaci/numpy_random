@@ -15,7 +15,7 @@ void copy_state(mt19937_state *target_state, mt19937_state *state)
 {
     int i;
 
-    for (i = 0; i < N; i++)
+    for (i = 0; i < NUMBER_OF_RANDOM_RAW_GENERATED; i++)
         target_state->key[i] = state->key[i];
 
     target_state->pos = state->pos;
@@ -29,22 +29,22 @@ void gen_next(mt19937_state *state)
     static unsigned long mag02[2] = {0x0ul, MATRIX_A};
 
     num = state->pos;
-    if (num < N - M)
+    if (num < NUMBER_OF_RANDOM_RAW_GENERATED - MT19937_RECURRENCE_OFFSET)
     {
         y = (state->key[num] & UPPER_MASK) | (state->key[num + 1] & LOWER_MASK);
-        state->key[num] = state->key[num + M] ^ (y >> 1) ^ mag02[y % 2];
+        state->key[num] = state->key[num + MT19937_RECURRENCE_OFFSET] ^ (y >> 1) ^ mag02[y % 2];
         state->pos++;
     }
-    else if (num < N - 1)
+    else if (num < NUMBER_OF_RANDOM_RAW_GENERATED - 1)
     {
         y = (state->key[num] & UPPER_MASK) | (state->key[num + 1] & LOWER_MASK);
-        state->key[num] = state->key[num + (M - N)] ^ (y >> 1) ^ mag02[y % 2];
+        state->key[num] = state->key[num + (MT19937_RECURRENCE_OFFSET - NUMBER_OF_RANDOM_RAW_GENERATED)] ^ (y >> 1) ^ mag02[y % 2];
         state->pos++;
     }
-    else if (num == N - 1)
+    else if (num == NUMBER_OF_RANDOM_RAW_GENERATED - 1)
     {
-        y = (state->key[N - 1] & UPPER_MASK) | (state->key[0] & LOWER_MASK);
-        state->key[N - 1] = state->key[M - 1] ^ (y >> 1) ^ mag02[y % 2];
+        y = (state->key[NUMBER_OF_RANDOM_RAW_GENERATED - 1] & UPPER_MASK) | (state->key[0] & LOWER_MASK);
+        state->key[NUMBER_OF_RANDOM_RAW_GENERATED - 1] = state->key[MT19937_RECURRENCE_OFFSET - 1] ^ (y >> 1) ^ mag02[y % 2];
         state->pos = 0;
     }
 }
@@ -55,21 +55,21 @@ void add_state(mt19937_state *state1, mt19937_state *state2)
 
     if (pt2 - pt1 >= 0)
     {
-        for (i = 0; i < N - pt2; i++)
+        for (i = 0; i < NUMBER_OF_RANDOM_RAW_GENERATED - pt2; i++)
             state1->key[i + pt1] ^= state2->key[i + pt2];
-        for (; i < N - pt1; i++)
-            state1->key[i + pt1] ^= state2->key[i + (pt2 - N)];
-        for (; i < N; i++)
-            state1->key[i + (pt1 - N)] ^= state2->key[i + (pt2 - N)];
+        for (; i < NUMBER_OF_RANDOM_RAW_GENERATED - pt1; i++)
+            state1->key[i + pt1] ^= state2->key[i + (pt2 - NUMBER_OF_RANDOM_RAW_GENERATED)];
+        for (; i < NUMBER_OF_RANDOM_RAW_GENERATED; i++)
+            state1->key[i + (pt1 - NUMBER_OF_RANDOM_RAW_GENERATED)] ^= state2->key[i + (pt2 - NUMBER_OF_RANDOM_RAW_GENERATED)];
     }
     else
     {
-        for (i = 0; i < N - pt1; i++)
+        for (i = 0; i < NUMBER_OF_RANDOM_RAW_GENERATED - pt1; i++)
             state1->key[i + pt1] ^= state2->key[i + pt2];
-        for (; i < N - pt2; i++)
-            state1->key[i + (pt1 - N)] ^= state2->key[i + pt2];
-        for (; i < N; i++)
-            state1->key[i + (pt1 - N)] ^= state2->key[i + (pt2 - N)];
+        for (; i < NUMBER_OF_RANDOM_RAW_GENERATED - pt2; i++)
+            state1->key[i + (pt1 - NUMBER_OF_RANDOM_RAW_GENERATED)] ^= state2->key[i + pt2];
+        for (; i < NUMBER_OF_RANDOM_RAW_GENERATED; i++)
+            state1->key[i + (pt1 - NUMBER_OF_RANDOM_RAW_GENERATED)] ^= state2->key[i + (pt2 - NUMBER_OF_RANDOM_RAW_GENERATED)];
     }
 }
 
@@ -122,7 +122,7 @@ void mt19937_jump_state(mt19937_state *state)
         pf[i] = poly_coef[i];
     }
 
-    if (state->pos >= N)
+    if (state->pos >= NUMBER_OF_RANDOM_RAW_GENERATED)
     {
         state->pos = 0;
     }
